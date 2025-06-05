@@ -19,7 +19,7 @@ const itemData = [
     title: "teste4",
   },
   {
-    img: "https://www.cnnbrasil.com.br/wp-content/uploads/sites/12/2023/01/comidas-da-regiao-do-nordeste-moqueca-maranhense.jpg?w=750",
+    img: "https://cdn.deliway.com.br/blog/base/168/082/929/705-485-comidas-tipicas-brasil.jpg",
     title: "teste3",
   },
   {
