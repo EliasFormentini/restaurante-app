@@ -9,7 +9,7 @@ const GetPedidos = () => {
       const res = await client.get("/pedidos");
       console.log(res.data);
       if (res.data) {
-        setPedidos(res.data.pedidos);
+        setPedidos(res.data);
       } else {
         setPedidos([]);
       }

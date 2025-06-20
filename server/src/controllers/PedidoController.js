@@ -2,27 +2,54 @@ import connection from "../db/connection.js";
 
 export default {
   async index(req, res) {
-    const [pedidos] = await connection.query("select * from pedidos p join produtos_pedido pp on pp.id_pedido = p.id join produtos pr on pr.id = pp.id_produto");
-    const id = pedidos[0];
-    res.json({ id, pedidos });
+    try {
+      const [pedidos] = await connection.query(
+        `SELECT p.*, 
+                pp.id_produto, 
+                pp.quantidade, 
+                pp.valor_unitario, 
+                pp.valor_total, 
+                pr.nome AS nome, 
+                pr.descricao, 
+                pr.imagem, 
+                pr.preco 
+         FROM pedidos p 
+         JOIN produtos_pedidos pp ON pp.id_pedido = p.id 
+         JOIN produtos pr ON pr.id = pp.id_produto`
+      );
+      res.json(pedidos);
+    } catch (error) {
+      console.error('Erro ao buscar pedidos:', error);
+      res.status(500).json({ error: 'Erro interno ao buscar pedidos' });
+    }
   },
-
-  
 
   async findOne(req, res) {
     const { id } = req.params;
-    const [pedido] = await connection.query("SELECT * FROM pedidos WHERE id = ?", [id]);
 
-    if (!pedido.length) {
-      return res.status(404).send("Pedido não encontrado");
+    try {
+      const [pedido] = await connection.query(
+        "SELECT * FROM pedidos WHERE id = ?",
+        [id]
+      );
+
+      if (!pedido.length) {
+        return res.status(404).send("Pedido não encontrado");
+      }
+
+      const [produtos] = await connection.query(
+        `SELECT pp.*, p.nome, p.descricao, p.imagem, p.preco 
+         FROM produtos_pedidos pp 
+         JOIN produtos p ON pp.id_produto = p.id 
+         WHERE pp.id_pedido = ?`,
+        [id]
+      );
+
+      res.json({ ...pedido[0], produtos });
+    } catch (error) {
+      console.error("Erro ao buscar pedido:", error);
+      res.status(500).json({ error: 'Erro interno ao buscar pedido' });
     }
-
-    const [produtos] = await connection.query(
-      "SELECT * FROM produtos_pedidos WHERE id_pedido = ?",
-      [id]
-    );
-
-    res.json({ ...pedido[0], produtos });
   },
 
   async create(req, res) {
@@ -30,26 +57,27 @@ export default {
 
     try {
       const valor_total_pedido = produtos.reduce(
-        (acc, p) => acc + p.preco,
+        (acc, p) => acc + (p.preco * (p.quantidade || 1)),
         0
       );
 
       const [result] = await connection.query(
         "INSERT INTO pedidos (valor_total_pedido, qtd_items, data_pedido, endereco) VALUES (?, ?, NOW(), ?)",
-        [valor_total_pedido, qtd_items,  endereco]
+        [valor_total_pedido, qtd_items, endereco]
       );
 
       const id_pedido = result.insertId;
 
       for (const produto of produtos) {
+        const quantidade = produto.quantidade || 1;
         await connection.query(
-          "INSERT INTO produtos_pedido (id_pedido, id_produto, quantidade, valor_unitario, valor_total) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO produtos_pedidos (id_pedido, id_produto, quantidade, valor_unitario, valor_total) VALUES (?, ?, ?, ?, ?)",
           [
             id_pedido,
             produto.id,
-            0,
+            quantidade,
             produto.preco,
-            produto.preco,
+            quantidade * produto.preco,
           ]
         );
       }
@@ -80,7 +108,10 @@ export default {
         return res.status(404).send("Pedido não encontrado");
       }
 
-      await connection.query("DELETE FROM produtos_pedidos WHERE id_pedido = ?", [id]);
+      await connection.query(
+        "DELETE FROM produtos_pedidos WHERE id_pedido = ?",
+        [id]
+      );
 
       for (const produto of produtos) {
         await connection.query(
@@ -106,7 +137,7 @@ export default {
     const { id } = req.params;
 
     try {
-      await connection.query("DELETE FROM produtos_pedido WHERE id_pedido = ?", [id]);
+      await connection.query("DELETE FROM produtos_pedidos WHERE id_pedido = ?", [id]);
       const [result] = await connection.query("DELETE FROM pedidos WHERE id = ?", [id]);
 
       if (result.affectedRows === 0) {
