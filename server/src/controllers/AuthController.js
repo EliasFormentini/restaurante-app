@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 const { User } = db;
-
 const secret = process.env.JWT_SECRET || 'seusegredoaqui';
 
 export async function register(req, res) {
@@ -22,14 +21,22 @@ export async function register(req, res) {
       nome,
       email,
       password: hashedPassword,
-      role: 'user'
+      role: 'user' // padrão para novo usuário
     });
 
     const token = jwt.sign({ id: user.id, role: user.role }, secret, {
       expiresIn: '4h'
     });
 
-    res.status(201).json({ token });
+    res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        nome: user.nome,
+        email: user.email,
+        role: user.role
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Erro ao registrar', error });
   }
@@ -59,11 +66,11 @@ export async function login(req, res) {
       token,
       user: {
         id: user.id,
+        nome: user.nome,
         email: user.email,
-        role: user.role,
+        role: user.role
       }
     });
-
   } catch (error) {
     res.status(500).json({ message: 'Erro ao fazer login', error });
   }

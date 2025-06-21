@@ -51,10 +51,20 @@ function NavBar() {
         </ListItemText>
       </ListItem>
 
+      {user?.role === 'admin' && (
+        <ListItemText inset>
+          <Typography color="inherit" variant="h6">
+            <NavLink to={"/getUsers"} className="nav-link">
+              Gerenciar Usuários
+            </NavLink>
+          </Typography>
+        </ListItemText>
+      )}
+
       {user ? (
         <div className="flex items-center gap-4 ml-4">
-          <Typography color="inherit">
-            Bem-vindo, {user.name || user.email}
+          <Typography color="inherit" className="text-sm">
+            Bem-vindo: {user.nome || user.email}
           </Typography>
           <Button
             variant="contained"
@@ -75,6 +85,7 @@ function NavBar() {
           Login
         </Button>
       )}
+
     </List>
   );
 }

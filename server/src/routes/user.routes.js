@@ -1,17 +1,20 @@
 import express from 'express';
 import UserController from '../controllers/UserController.js';
 import * as AuthController from '../controllers/AuthController.js';
-import { authenticateToken } from '../middlewares/auth.js';
+import { authenticateToken, isAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
+// 🔑 Autenticação
 router.post('/login', AuthController.login);
 router.post('/register', AuthController.register);
 
-// Ações administrativas
-router.get('/', authenticateToken, UserController.getAllUsers);
+// 🔐 Perfil pessoal (qualquer usuário autenticado)
 router.get('/profile', authenticateToken, UserController.getProfile);
-router.put('/:id', authenticateToken, UserController.updateUser);
-router.delete('/:id', authenticateToken, UserController.deleteUser);
+
+// 🔒 Gerenciamento de usuários (apenas admin)
+router.get('/', authenticateToken, isAdmin, UserController.getAllUsers);
+router.put('/:id', authenticateToken, isAdmin, UserController.updateUser);
+router.delete('/:id', authenticateToken, isAdmin, UserController.deleteUser);
 
 export default router;

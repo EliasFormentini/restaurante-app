@@ -14,6 +14,7 @@ import CreatePedido from "./components/CreatePedido";
 import GetOneProduto from "./hooks/GetOneProduto";
 import Home from "./components/Home";
 import Login from "./components/Login";
+import GetUsers from "./components/GetUsers";
 
 function PrivateRoute({ children }) {
   const token = localStorage.getItem('token');
@@ -38,7 +39,7 @@ function App() {
         <div className="p-8">
           <Routes>
             <Route path="/login" element={<Login />} />
-            
+
             <Route
               path="/"
               element={
@@ -103,6 +104,8 @@ function App() {
                 </PrivateRoute>
               }
             />
+            <Route path="/getUsers" Component={GetUsers} />
+
           </Routes>
         </div>
       </div>
