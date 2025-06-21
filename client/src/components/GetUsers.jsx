@@ -19,9 +19,9 @@ const GetUsers = () => {
       setUsers(res.data);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
-      alert('Erro ao buscar usuários. Verifique se você está logado como admin.');
     }
   };
+
 
   const handleDelete = async (id) => {
     if (!window.confirm('Deseja realmente excluir este usuário?')) return;
