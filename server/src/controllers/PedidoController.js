@@ -1,33 +1,74 @@
 import connection from "../db/connection.js";
 
 export default {
-  // ✅ Listar pedidos
-  async index(req, res) {
+    async index(req, res) {
     const { role, id: userId } = req.user;
 
     try {
-      const [pedidos] = await connection.query(
+      const [rows] = await connection.query(
         `SELECT 
-            p.*, 
-            pp.id_produto, 
-            pp.quantidade, 
-            pp.valor_unitario, 
-            pp.valor_total, 
-            pr.nome AS nome_produto, 
-            pr.descricao, 
-            pr.imagem, 
-            pr.preco 
-         FROM pedidos p 
-         JOIN produtos_pedidos pp ON pp.id_pedido = p.id 
-         JOIN produtos pr ON pr.id = pp.id_produto
-         ${role === 'admin' ? '' : 'WHERE p.user_id = ?'}`, // 🔥 Filtra se não for admin
+          p.id AS pedido_id,
+          p.valor_total_pedido,
+          p.qtd_items,
+          p.data_pedido,
+          p.endereco,
+          p.user_id,
+          u.nome AS nome_usuario,
+          u.email AS email_usuario,
+          pp.id_produto,
+          pp.quantidade,
+          pp.valor_unitario,
+          pp.valor_total,
+          pr.nome AS nome_produto,
+          pr.descricao,
+          pr.imagem,
+          pr.preco
+        FROM pedidos p
+        JOIN produtos_pedidos pp ON pp.id_pedido = p.id
+        JOIN produtos pr ON pr.id = pp.id_produto
+        JOIN users u ON u.id = p.user_id
+        ${role === 'admin' ? '' : 'WHERE p.user_id = ?'}
+        ORDER BY p.id DESC`,
         role === 'admin' ? [] : [userId]
       );
 
+      // 🔥 Agrupar pedidos
+      const pedidos = [];
+
+      rows.forEach(row => {
+        let pedido = pedidos.find(p => p.id === row.pedido_id);
+
+        if (!pedido) {
+          pedido = {
+            id: row.pedido_id,
+            valor_total_pedido: row.valor_total_pedido,
+            qtd_items: row.qtd_items,
+            data_pedido: row.data_pedido,
+            endereco: row.endereco,
+            user_id: row.user_id,
+            nome_usuario: row.nome_usuario,
+            email_usuario: row.email_usuario,
+            produtos: [],
+          };
+          pedidos.push(pedido);
+        }
+
+        pedido.produtos.push({
+          id_produto: row.id_produto,
+          nome: row.nome_produto,
+          descricao: row.descricao,
+          imagem: row.imagem,
+          preco: row.preco,
+          quantidade: row.quantidade,
+          valor_unitario: row.valor_unitario,
+          valor_total: row.valor_total,
+        });
+      });
+
       res.json(pedidos);
     } catch (error) {
-      console.error('Erro ao buscar pedidos:', error);
-      res.status(500).json({ error: 'Erro interno ao buscar pedidos' });
+      console.error("Erro ao buscar pedidos:", error);
+      res.status(500).json({ error: "Erro interno ao buscar pedidos" });
     }
   },
 
@@ -37,29 +78,65 @@ export default {
     const { role, id: userId } = req.user;
 
     try {
-      const [pedido] = await connection.query(
-        `SELECT * FROM pedidos WHERE id = ? ${role !== 'admin' ? 'AND user_id = ?' : ''}`,
+      const [rows] = await connection.query(
+        `SELECT 
+          p.id AS pedido_id,
+          p.valor_total_pedido,
+          p.qtd_items,
+          p.data_pedido,
+          p.endereco,
+          p.user_id,
+          u.nome AS nome_usuario,
+          u.email AS email_usuario,
+          pp.id_produto,
+          pp.quantidade,
+          pp.valor_unitario,
+          pp.valor_total,
+          pr.nome AS nome_produto,
+          pr.descricao,
+          pr.imagem,
+          pr.preco
+       FROM pedidos p
+       JOIN produtos_pedidos pp ON pp.id_pedido = p.id
+       JOIN produtos pr ON pr.id = pp.id_produto
+       JOIN users u ON u.id = p.user_id
+       WHERE p.id = ? ${role !== 'admin' ? 'AND p.user_id = ?' : ''}
+       ORDER BY p.id DESC`,
         role !== 'admin' ? [id, userId] : [id]
       );
 
-      if (!pedido.length) {
-        return res.status(404).send("Pedido não encontrado");
+      if (!rows.length) {
+        return res.status(404).send("Pedido não encontrado ou não autorizado");
       }
 
-      const [produtos] = await connection.query(
-        `SELECT pp.*, p.nome, p.descricao, p.imagem, p.preco 
-         FROM produtos_pedidos pp 
-         JOIN produtos p ON pp.id_produto = p.id 
-         WHERE pp.id_pedido = ?`,
-        [id]
-      );
+      const pedido = {
+        id: rows[0].pedido_id,
+        valor_total_pedido: rows[0].valor_total_pedido,
+        qtd_items: rows[0].qtd_items,
+        data_pedido: rows[0].data_pedido,
+        endereco: rows[0].endereco,
+        user_id: rows[0].user_id,
+        nome_usuario: rows[0].nome_usuario,
+        email_usuario: rows[0].email_usuario,
+        produtos: rows.map(row => ({
+          id_produto: row.id_produto,
+          nome: row.nome_produto,
+          descricao: row.descricao,
+          imagem: row.imagem,
+          preco: row.preco,
+          quantidade: row.quantidade,
+          valor_unitario: row.valor_unitario,
+          valor_total: row.valor_total,
+        })),
+      };
 
-      res.json({ ...pedido[0], produtos });
+      res.json(pedido);
     } catch (error) {
       console.error("Erro ao buscar pedido:", error);
       res.status(500).json({ error: 'Erro interno ao buscar pedido' });
     }
-  },
+  }
+  ,
 
   // ✅ Criar pedido
   async create(req, res) {

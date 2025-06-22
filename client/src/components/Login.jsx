@@ -11,23 +11,29 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const url = isRegister
+      ? 'http://localhost:3000/api/users/register'
+      : 'http://localhost:3000/api/users/login';
+
+    const payload = isRegister
+      ? { nome, email, password }
+      : { email, password };
+
     try {
-      const res = await fetch('http://localhost:3000/api/users/login', {
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // Salvar o token e os dados do usuário
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user)); // <- Aqui salva o usuário
-
+        localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/');
       } else {
-        alert(data.message || 'Erro ao fazer login');
+        alert(data.message || 'Erro');
       }
     } catch (error) {
       alert('Erro de conexão com o servidor');
