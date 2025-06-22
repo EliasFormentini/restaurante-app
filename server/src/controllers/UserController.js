@@ -2,7 +2,6 @@ import db from '../../models/index.js';
 const { User } = db;
 
 export default {
-  // ✅ Lista todos os usuários (admin)
   async getAllUsers(req, res) {
     try {
       const users = await User.findAll({
@@ -15,7 +14,6 @@ export default {
     }
   },
 
-  // ✅ Perfil do próprio usuário (autenticado)
   async getProfile(req, res) {
     try {
       const user = await User.findByPk(req.user.id, {
@@ -33,7 +31,6 @@ export default {
     }
   },
 
-  // ✅ Atualizar usuário (apenas admin)
   async updateUser(req, res) {
     const { id } = req.params;
     const { nome, email, role } = req.body;
@@ -66,7 +63,6 @@ export default {
     }
   },
 
-  // ✅ Deletar usuário (apenas admin)
   async deleteUser(req, res) {
     const { id } = req.params;
 

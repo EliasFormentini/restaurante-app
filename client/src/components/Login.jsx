@@ -6,10 +6,12 @@ export default function Login() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage(''); // 🔥 Limpa mensagem de erro a cada submit
 
     const url = isRegister
       ? 'http://localhost:3000/api/users/register'
@@ -33,10 +35,10 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/');
       } else {
-        alert(data.message || 'Erro');
+        setErrorMessage(data.message || 'Erro ao processar a solicitação');
       }
     } catch (error) {
-      alert('Erro de conexão com o servidor');
+      setErrorMessage('Erro de conexão com o servidor');
     }
   };
 
@@ -56,6 +58,13 @@ export default function Login() {
         >
           {isRegister ? 'Criar Conta' : 'Iniciar Sessão'}
         </h2>
+
+        {/* 🔥 Mensagem de erro */}
+        {errorMessage && (
+          <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
+            {errorMessage}
+          </div>
+        )}
 
         {isRegister && (
           <div>
@@ -109,7 +118,10 @@ export default function Login() {
           {isRegister ? 'Já tem uma conta?' : 'Não tem uma conta?'}{' '}
           <span
             className="text-[#b86f4c] font-semibold cursor-pointer hover:underline"
-            onClick={() => setIsRegister(!isRegister)}
+            onClick={() => {
+              setIsRegister(!isRegister);
+              setErrorMessage(''); // 🔥 Limpa erro ao trocar tela
+            }}
           >
             {isRegister ? 'Fazer login' : 'Cadastrar'}
           </span>

@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const passwordHash = await bcrypt.hash('123456', 10); // Senha fictícia
+    const passwordHash = await bcrypt.hash('123456', 10);
 
     await queryInterface.bulkInsert('Users', [{
       email: 'admin@example.com',

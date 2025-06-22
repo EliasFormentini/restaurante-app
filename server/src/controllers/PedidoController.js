@@ -32,7 +32,6 @@ export default {
         role === 'admin' ? [] : [userId]
       );
 
-      // 🔥 Agrupar pedidos
       const pedidos = [];
 
       rows.forEach(row => {
@@ -72,7 +71,6 @@ export default {
     }
   },
 
-  // ✅ Buscar pedido específico
   async findOne(req, res) {
     const { id } = req.params;
     const { role, id: userId } = req.user;
@@ -138,10 +136,9 @@ export default {
   }
   ,
 
-  // ✅ Criar pedido
   async create(req, res) {
     const { qtd_items, endereco, produtos } = req.body;
-    const userId = req.user.id; // 🔥 Usuário logado
+    const userId = req.user.id;
 
     try {
       const valor_total_pedido = produtos.reduce(
@@ -180,7 +177,6 @@ export default {
     }
   },
 
-  // ✅ Atualizar pedido
   async update(req, res) {
     const { id } = req.params;
     const { qtd_items, endereco, produtos } = req.body;
@@ -232,7 +228,6 @@ export default {
     }
   },
 
-  // ✅ Deletar pedido
   async delete(req, res) {
     const { id } = req.params;
     const { role, id: userId } = req.user;
