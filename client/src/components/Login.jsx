@@ -11,7 +11,7 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage(''); // 🔥 Limpa mensagem de erro a cada submit
+    setErrorMessage(''); 
 
     const url = isRegister
       ? 'http://localhost:3000/api/users/register'
@@ -59,7 +59,6 @@ export default function Login() {
           {isRegister ? 'Criar Conta' : 'Iniciar Sessão'}
         </h2>
 
-        {/* 🔥 Mensagem de erro */}
         {errorMessage && (
           <div className="bg-red-100 text-red-700 p-2 rounded text-sm text-center">
             {errorMessage}
