@@ -17,12 +17,10 @@ const config = JSON.parse(configFile)[env];
 
 const db = {};
 
-// Inicializar sequelize
 const sequelize = config.use_env_variable
   ? new Sequelize(process.env[config.use_env_variable], config)
   : new Sequelize(config.database, config.username, config.password, config);
 
-// Carregar todos os arquivos de model da pasta models
 const files = fs
   .readdirSync(__dirname)
   .filter(
@@ -33,7 +31,6 @@ const files = fs
       !file.endsWith('.test.js')
   );
 
-// Importar e definir models
 for (const file of files) {
   const modelPath = path.join(__dirname, file);
   const modelUrl = pathToFileURL(modelPath).href;
@@ -42,14 +39,12 @@ for (const file of files) {
   db[model.name] = model;
 }
 
-// Configurar associações entre models, se houver
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
   }
 });
 
-// Exportar sequelize e os models
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
